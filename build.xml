@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="docker-silverpop-extractor" default="build">
+	<target name="build" depends="prepare"/>
+
+	<target name="clean" description="Cleanup build artifacts">
+		<delete dir="${basedir}/build/results/api"/>
+		<delete dir="${basedir}/build/results/code-browser"/>
+		<delete dir="${basedir}/build/results/coverage"/>
+		<delete dir="${basedir}/build/results/logs"/>
+		<delete dir="${basedir}/build/results/pdepend"/>
+		<delete dir="${basedir}/build/results/apigen"/>
+	</target>
+
+	<target name="prepare" depends="clean"
+			description="Prepare for build">
+		<mkdir dir="${basedir}/build/results/api"/>
+		<mkdir dir="${basedir}/build/results/code-browser"/>
+		<mkdir dir="${basedir}/build/results/coverage"/>
+		<mkdir dir="${basedir}/build/results/logs"/>
+		<mkdir dir="${basedir}/build/results/pdepend"/>
+		<mkdir dir="${basedir}/build/results/apigen"/>
+		<exec executable="/usr/local/bin/composer">
+			<arg value="install" />
+ 		</exec>
+	</target>
+
+</project>
