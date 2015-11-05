@@ -8,7 +8,7 @@ class Silverpop
   private $config;
   private $source;
   private $destination;
-  private $mandatoryConfigColumns = array('username', 'password', 'engage_server', 'date_from', 'date_to');
+  private $mandatoryConfigColumns = array('bucket', 'username', 'password', 'engage_server', 'date_from', 'date_to');
   private $configNamesIndexes;
   private $filesDownloaded;
   private $remoteDir = 'download/';
@@ -44,6 +44,7 @@ class Silverpop
         'date_to' => $row[$this->configNamesIndexes['date_to']],
         'sftp_port' => 22,
         'sftp_username' => $this->sanitizeUsername($row[$this->configNamesIndexes['username']]),
+        'bucket' => $row[$this->configNamesIndexes['bucket']],
       );
     }
 
@@ -62,12 +63,13 @@ class Silverpop
   {
     foreach ($this->config as $config)
     {
+      $this->filesDownloaded = array();
       $this->downloadMetrics($config);
-    }
 
-    foreach ($this->filesDownloaded as $f)
-    {
-      $this->extractAndLoad($f);
+      foreach ($this->filesDownloaded as $f)
+      {
+        $this->extractAndLoad($f, $config['bucket']);
+      }
     }
   }
 
@@ -98,12 +100,21 @@ class Silverpop
       $this->filesDownloaded[] = $file;
 
       // Wait till its done
+      $counter = 0;
       do
       {
       	sleep(2);
 
       	$status = $silverpop->getJobStatus($result['JOB_ID']);
-      } while ($status['JOB_STATUS'] != 'COMPLETE');
+
+        $counter++;
+      } while ($status['JOB_STATUS'] != 'COMPLETE' && $counter < 30);
+
+      // Check if everything happend OK
+      if ($status['JOB_STATUS'] != 'COMPLETE')
+      {
+        throw new SilverpopException('An error occured while creating report in Silverpop.');
+      }
 
       $this->logMessage('Job completed for mailing '.$m['MailingId']);
 
@@ -148,7 +159,7 @@ class Silverpop
     }
   }
 
-  private function extractAndLoad($file)
+  private function extractAndLoad($file, $bucket)
   {
     $writeHeader = false;
     $zipFolder = str_replace('.zip', '', $file);
@@ -166,6 +177,8 @@ class Silverpop
     {
       $fileName = explode('/', $file);
       $fileName = $fileName[count($fileName)-1];
+      $fileName = str_replace('.csv', '', $fileName);
+      $fileName = $bucket.'.'.$fileName;
 
       $source = fopen($file, "r");
 
