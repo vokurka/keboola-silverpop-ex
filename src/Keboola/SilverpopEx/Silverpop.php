@@ -96,6 +96,22 @@ class Silverpop
       $this->logMessage('Creating job for mailing '.$m['MailingId']);
 
       $result = $silverpop->trackingMetricExport($m['MailingId'], $config['date_from'], $config['date_to']);
+
+      $counter = 0;
+      do
+      {
+        sleep(2);
+
+        $result = $silverpop->trackingMetricExport($m['MailingId'], $config['date_from'], $config['date_to']);
+        $counter++;
+      } while (empty($result['JOB_ID']) && $counter < 30);
+
+      if (empty($result['JOB_ID']))
+      {
+        echo 'WARNING: An error occured while creating job in Silverpop for mailing: '.$m['MailingId'];
+        continue;
+      }
+
       $file = $result['FILE_PATH'];
       $this->filesDownloaded[] = $file;
 
@@ -106,7 +122,6 @@ class Silverpop
       	sleep(2);
 
       	$status = $silverpop->getJobStatus($result['JOB_ID']);
-
         $counter++;
       } while ($status['JOB_STATUS'] != 'COMPLETE' && $counter < 30);
 

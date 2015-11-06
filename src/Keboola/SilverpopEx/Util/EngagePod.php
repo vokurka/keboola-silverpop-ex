@@ -28,7 +28,6 @@ class EngagePod {
         // otherwise we are authenticating to the server once for every request
         $this->_baseUrl = 'http://api' . $config['engage_server'] . '.silverpop.com/XMLAPI';
         $this->_login($config['username'], $config['password']);
-
     }
 
     /**
