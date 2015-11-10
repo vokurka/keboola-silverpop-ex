@@ -22,7 +22,7 @@ if (isset($config["storage"]["input"]["tables"][0]["destination"])) {
 
 try {
     $silverpop = new Silverpop(
-        $arguments["data"] . "/in/tables/{$sourceFile}",
+        $config['parameters'],
         $arguments["data"] . "/out/tables/"
     );
 

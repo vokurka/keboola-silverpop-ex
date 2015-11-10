@@ -1,7 +1,7 @@
 #VERSION 1.0.0
 FROM keboola/base
 MAINTAINER Vojtech Kurka <vokurka@keboola.com>
-ENV APP_VERSION 1.0.0
+ENV APP_VERSION 1.0.2
 
 # Image setup
 WORKDIR /tmp

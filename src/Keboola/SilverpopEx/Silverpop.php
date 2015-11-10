@@ -6,7 +6,6 @@ require_once "Util/EngagePod.php";
 class Silverpop
 {
   private $config;
-  private $source;
   private $destination;
   private $mandatoryConfigColumns = array('bucket', 'username', 'password', 'engage_server', 'date_from', 'date_to');
   private $configNamesIndexes;
@@ -15,43 +14,23 @@ class Silverpop
   private $localDir = '/tmp/';
   private $destinationFolder;
 
-  public function __construct($source, $destinationFolder)
+  public function __construct($ymlConfig, $destinationFolder)
   {
     $this->destinationFolder = $destinationFolder;
-    $fhIn = fopen($source, "r");
-    $header = fgetcsv($fhIn);
+    
 
     foreach ($this->mandatoryConfigColumns as $c)
     {
-      if (!in_array($c, $header)) 
+      if (empty($ymlConfig[$c])) 
       {
-        throw new SilverpopException("Mandatory column '{$c}' not found.");
+        throw new SilverpopException("Mandatory column '{$c}' not found or empty.");
       }
+
+      $this->config[$c] = $ymlConfig[$c];
     }
 
-    foreach ($this->mandatoryConfigColumns as $c)
-    {
-      $this->configNamesIndexes[$c] = array_search($c, $header);
-    }
-
-    while ($row = fgetcsv($fhIn)) 
-    {
-      $this->config[] = array(
-        'username' => $row[$this->configNamesIndexes['username']],
-        'password' => $row[$this->configNamesIndexes['password']],
-        'engage_server' => $row[$this->configNamesIndexes['engage_server']],
-        'date_from' => $row[$this->configNamesIndexes['date_from']],
-        'date_to' => $row[$this->configNamesIndexes['date_to']],
-        'sftp_port' => 22,
-        'sftp_username' => $this->sanitizeUsername($row[$this->configNamesIndexes['username']]),
-        'bucket' => $row[$this->configNamesIndexes['bucket']],
-      );
-    }
-
-    if (count($this->config) <= 0)
-    {
-      throw new SilverpopException("No configuration found.");
-    }
+    $this->config['sftp_port'] = 22;
+    $this->config['sftp_username'] = $this->sanitizeUsername($ymlConfig['username']);
   }
 
   private function logMessage($message)
@@ -61,15 +40,12 @@ class Silverpop
 
   public function run()
   {
-    foreach ($this->config as $config)
-    {
-      $this->filesDownloaded = array();
-      $this->downloadMetrics($config);
+    $this->filesDownloaded = array();
+    $this->downloadMetrics($this->config);
 
-      foreach ($this->filesDownloaded as $f)
-      {
-        $this->extractAndLoad($f, $config['bucket']);
-      }
+    foreach ($this->filesDownloaded as $f)
+    {
+      $this->extractAndLoad($f, $this->config['bucket']);
     }
   }
 
@@ -171,6 +147,7 @@ class Silverpop
       file_put_contents($this->localDir . $file, $data);
 
       $this->logMessage('Data downloaded for mailing '.$m['MailingId']);
+      break;
     }
   }
 
