@@ -16,8 +16,8 @@ class Silverpop
 
   public function __construct($ymlConfig, $destinationFolder)
   {
+    date_default_timezone_set('UTC');
     $this->destinationFolder = $destinationFolder;
-    
 
     foreach ($this->mandatoryConfigColumns as $c)
     {
@@ -31,6 +31,21 @@ class Silverpop
 
     $this->config['sftp_port'] = 22;
     $this->config['sftp_username'] = $this->sanitizeUsername($ymlConfig['username']);
+
+    foreach (array('date_from', 'date_to') as $dateId)
+    {
+      $timestamp = strtotime($this->config[$dateId]);
+
+      if ($timestamp === FALSE)
+      {
+        throw new SilverpopException("Invalid time value in field ".$dateId);
+      }
+
+      $dateTime = new DateTime();
+      $dateTime->setTimestamp($timestamp);
+
+      $this->config[$dateId] = $dateTime->format('m/d/Y H:i:s');
+    }
   }
 
   private function logMessage($message)
@@ -147,7 +162,6 @@ class Silverpop
       file_put_contents($this->localDir . $file, $data);
 
       $this->logMessage('Data downloaded for mailing '.$m['MailingId']);
-      break;
     }
   }
 
