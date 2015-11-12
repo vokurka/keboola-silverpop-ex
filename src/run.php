@@ -14,12 +14,6 @@ if (!isset($arguments["data"])) {
 
 $config = Yaml::parse(file_get_contents($arguments["data"] . "/config.yml"));
 
-if (isset($config["storage"]["input"]["tables"][0]["destination"])) {
-    $sourceFile  = $config["storage"]["input"]["tables"][0]["destination"];
-} else {
-    $sourceFile = $config["storage"]["input"]["tables"][0]["source"];
-}
-
 try {
     $silverpop = new Silverpop(
         $config['parameters'],

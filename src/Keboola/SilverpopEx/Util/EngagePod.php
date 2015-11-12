@@ -183,6 +183,65 @@ class EngagePod {
     }
 
     /**
+     * Creates job for data extract for contact list
+     */
+    public function exportList($listId, $dateFrom, $dateTo) {
+        $data["Envelope"] = array(
+            "Body" => array(
+                "ExportList" => array(
+                    "LIST_ID" => $listId,
+                    "DATE_START" => $dateFrom,
+                    "DATE_END" => $dateTo,
+                    "EXPORT_TYPE" => "ALL",
+                    "EXPORT_FORMAT" => "CSV",
+                    "FILE_ENCODING" => "UTF-8",
+                    "LIST_DATE_FORMAT" => "yyyy-MM-dd",
+                    "INCLUDE_LEAD_SOURCE" => 1,
+                    "INCLUDE_RECIPIENT_ID" => 1,
+                    "MOVE_TO_FTP" => 1,
+                ),
+            ),
+        );
+        $response = $this->_request($data);
+        $result = $response["Envelope"]["Body"]["RESULT"];
+        if ($this->_isSuccess($result)) {
+            return $result;
+        } else {
+            throw new \Exception("ExportList Error: ".$this->_getErrorFromResponse($response));
+        }
+    }
+
+    /**
+     * Creates job for data extract about events
+     */
+    public function rawRecipientDataExport($listId, $dateFrom, $dateTo) {
+        $data["Envelope"] = array(
+            "Body" => array(
+                "RawRecipientDataExport" => array(
+                    "LIST_ID" => $listId,
+                    "EVENT_DATE_START" => $dateFrom,
+                    "EVENT_DATE_END" => $dateTo,
+                    "EXPORT_FORMAT" => 0,
+                    "INCLUDE_CHILDREN" => 1,
+                    "SHARED" => 1,
+                    "SENT_MAILINGS" => 1,
+                    "ALL_EVENT_TYPES" => 1,
+                    "RETURN_SUBJECT" => 1,
+                    "RETURN_MAILING_NAME" => 1,
+                    "MOVE_TO_FTP" => 1,
+                ),
+            ),
+        );
+        $response = $this->_request($data);
+        $result = $response["Envelope"]["Body"]["RESULT"];
+        if ($this->_isSuccess($result)) {
+            return $result;
+        } else {
+            throw new \Exception("RawRecipientDataExport Error: ".$this->_getErrorFromResponse($response));
+        }
+    }
+
+    /**
      * Calculate a query
      *
      */
