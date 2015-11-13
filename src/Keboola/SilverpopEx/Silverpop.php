@@ -256,14 +256,14 @@ class Silverpop
       $fileName = $fileName[count($fileName)-1];
       $fileName = str_replace('.csv', '', $fileName);
 
-      $this->loadFile($file, $bucket, $fileName);
+      $this->loadFile($file, $bucket, $fileName, $writeHeader);
     }
     
     $this->logMessage('Data extracted and loaded from file '.$zipFolder);
   }
 
     // loads CSV file and consolidates its data into destination file
-  private function loadFile($file, $bucket, $destinationFile)
+  private function loadFile($file, $bucket, $destinationFile, $writeHeader = true)
   {
     $fileName = $bucket.'.'.$destinationFile;
 
