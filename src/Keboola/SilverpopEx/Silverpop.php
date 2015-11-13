@@ -214,11 +214,14 @@ class Silverpop
       throw new SilverpopException("Unable to create local file: $file");
     }
 
+    stream_copy_to_stream($remote, $local);
+
     fclose($local);
     fclose($remote);
 
-    $data = file_get_contents("ssh2.sftp://{$stream}/{$this->remoteDir}{$file}");
-    file_put_contents($this->localDir . $file, $data);
+    // $data = file_get_contents("ssh2.sftp://{$stream}/{$this->remoteDir}{$file}");
+    // file_put_contents($this->localDir . $file, $data);
+
 
     if ($type == 'contact_lists' || $type == 'events')
     {
