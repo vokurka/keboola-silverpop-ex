@@ -225,7 +225,7 @@ class Silverpop
 
     if ($type == 'contact_lists' || $type == 'events')
     {
-      $this->loadFile($this->localDir.$file, $this->config['bucket'], $type);
+      $this->loadFile($this->localDir.$file, $this->config['bucket'], $type, true);
     }
     else
     {
@@ -263,7 +263,7 @@ class Silverpop
   }
 
     // loads CSV file and consolidates its data into destination file
-  private function loadFile($file, $bucket, $destinationFile, $writeHeader = true)
+  private function loadFile($file, $bucket, $destinationFile, $writeHeader)
   {
     $fileName = $bucket.'.'.$destinationFile;
 
@@ -290,7 +290,20 @@ class Silverpop
 
     if ($writeHeader == true)
     {
+      $headerParts = explode(',', $header);
+      
+      foreach ($headerParts as $index => $part)
+      {
+        if (strlen($part) > 64)
+        {
+          $headerParts[$index] = substr($part, 0, 62).'"';
+        }
+      }
+
+      $header = implode(',', $headerParts);
+
       fwrite($destination, $header);
+
       $writeHeader = false;
     }
 
