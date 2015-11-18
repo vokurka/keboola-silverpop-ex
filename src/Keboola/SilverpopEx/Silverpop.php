@@ -19,13 +19,9 @@ class Silverpop
     'export_events',
     'lists_to_download',
   );
-  private $filesDownloaded = array();
   private $remoteDir = 'download/';
   private $localDir = '/tmp/';
   private $destinationFolder;
-
-  //exportList
-  //rawRecipientDataExport
 
   public function __construct($ymlConfig, $destinationFolder)
   {
@@ -97,12 +93,6 @@ class Silverpop
     {
       $this->exportEvents($silverpop);
     }
-
-    // extract and consolidate all the files
-    foreach ($this->filesDownloaded as $f)
-    {
-      $this->extractAndLoad($f, $this->config['bucket']);
-    }
   }
 
   private function sanitizeUsername($username)
@@ -140,7 +130,7 @@ class Silverpop
     {
       $result = $silverpop->exportList($list, $this->config['date_from'], $this->config['date_to']);
 
-      $this->downloadJob($result, $silverpop, 'contact_lists');
+      $this->downloadJob($result, $silverpop, 'contact_lists', $list);
     }
 
     $this->logMessage('Download completed for contact lists.');
@@ -150,17 +140,17 @@ class Silverpop
   {
     $this->logMessage('Downloading events.');
 
-    foreach ($this->config['lists_to_download'] as $country)
+    foreach ($this->config['lists_to_download'] as $list)
     {
-      $result = $silverpop->exportList($country, $this->config['date_from'], $this->config['date_to']);
+      $result = $silverpop->rawRecipientDataExport($list, $this->config['date_from'], $this->config['date_to']);
 
-      $this->downloadJob($result, $silverpop, 'events');
+      $this->downloadJob($result, $silverpop, 'events', $list);
     }
 
     $this->logMessage('Download completed for events.');
   }
 
-  private function downloadJob($result, $silverpop, $type)
+  private function downloadJob($result, $silverpop, $type, $listId='')
   {
     $file = str_replace('/download/', '', $result['FILE_PATH']);
 
@@ -219,35 +209,38 @@ class Silverpop
     fclose($local);
     fclose($remote);
 
-    // $data = file_get_contents("ssh2.sftp://{$stream}/{$this->remoteDir}{$file}");
-    // file_put_contents($this->localDir . $file, $data);
-
-
-    if ($type == 'contact_lists' || $type == 'events')
+    if ($type == 'contact_lists')
     {
-      $this->loadFile($this->localDir.$file, $this->config['bucket'], $type, true);
+      $this->loadFile($this->localDir.$file, $this->config['bucket'], $type, true, 'LIST_ID', $listId);
+    }
+    else if ($type == 'events')
+    {
+      $this->extractAndLoad($this->localDir.$file, $this->config['bucket'], array('Raw Recipient Data Export' => 'events'), 'LIST_ID', $listId);
     }
     else
     {
-      $this->filesDownloaded[] = $file;
+      $this->extractAndLoad($this->localDir.$file, $this->config['bucket']);
     }
 
     $this->logMessage('Data downloaded for job '.$result['JOB_ID']);
   }
 
   // Extracts file from zip and consolidates data into output file
-  private function extractAndLoad($file, $bucket)
+  private function extractAndLoad($file, $bucket, $renames=array(), $headerPrefix='', $rowPrefix='')
   {
     $writeHeader = false;
     $zipFolder = str_replace('.zip', '', $file);
-
     $zip = new ZipArchive;
-    $res = $zip->open($this->localDir.$file);
+    $res = $zip->open($file);
 
     if ($res === TRUE) 
     {
       $zip->extractTo($this->localDir.$zipFolder);
       $zip->close();
+    }
+    else
+    {
+      throw new SilverpopException('Code: '.$res.' - Unable to unzip a file: '.$this->localDir.$file);
     }
 
     foreach (glob($this->localDir.$zipFolder.'/*') as $file)
@@ -256,19 +249,26 @@ class Silverpop
       $fileName = $fileName[count($fileName)-1];
       $fileName = str_replace('.csv', '', $fileName);
 
-      $this->loadFile($file, $bucket, $fileName, $writeHeader);
+      foreach ($renames as $match => $newName)
+      {
+        if (strpos($file, $match) !== false)
+        {
+          $fileName = $newName;
+        }
+      }
+
+      $this->loadFile($file, $bucket, $fileName, $writeHeader, $headerPrefix, $rowPrefix);
     }
     
     $this->logMessage('Data extracted and loaded from file '.$zipFolder);
   }
 
     // loads CSV file and consolidates its data into destination file
-  private function loadFile($file, $bucket, $destinationFile, $writeHeader)
+  private function loadFile($file, $bucket, $destinationFile, $writeHeader, $headerPrefix='', $rowPrefix='')
   {
     $fileName = $bucket.'.'.$destinationFile;
 
     $source = fopen($file, "r");
-
     if ($source === false)
     {
       throw new SilverpopException("Unable to read: $file");
@@ -282,7 +282,6 @@ class Silverpop
     }
 
     $destination = fopen($this->destinationFolder.$fileName, 'a');
-
     if ($destination === false)
     {
       throw new SilverpopException("Unable to write: {$this->destinationFolder}.{$fileName}");
@@ -302,6 +301,11 @@ class Silverpop
 
       $header = implode(',', $headerParts);
 
+      if (!empty($headerPrefix))
+      {
+        $header = '"'.$headerPrefix.'",'.$header;
+      }
+
       fwrite($destination, $header);
 
       $writeHeader = false;
@@ -309,6 +313,11 @@ class Silverpop
 
     while ($row = fgets($source)) 
     {
+      if (!empty($rowPrefix))
+      {
+        $row = '"'.$rowPrefix.'",'.$row;
+      }
+
       fwrite($destination, $row);
     }
 

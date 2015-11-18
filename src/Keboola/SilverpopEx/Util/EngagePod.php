@@ -235,7 +235,11 @@ class EngagePod {
         $response = $this->_request($data);
         $result = $response["Envelope"]["Body"]["RESULT"];
         if ($this->_isSuccess($result)) {
-            return $result;
+            if (isset($result['MAILING']))
+                return $result['MAILING'];
+            else {
+                return array(); //?
+            }
         } else {
             throw new \Exception("RawRecipientDataExport Error: ".$this->_getErrorFromResponse($response));
         }
