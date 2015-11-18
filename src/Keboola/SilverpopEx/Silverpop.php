@@ -168,7 +168,7 @@ class Silverpop
 
     	$status = $silverpop->getJobStatus($result['JOB_ID']);
       $counter++;
-    } while ($status['JOB_STATUS'] != 'COMPLETE' && $counter < 30);
+    } while ($status['JOB_STATUS'] != 'COMPLETE' && $counter < 1800);
 
     // Check if everything happend OK
     if ($status['JOB_STATUS'] != 'COMPLETE')
