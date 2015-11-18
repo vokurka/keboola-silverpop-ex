@@ -152,6 +152,12 @@ class Silverpop
 
   private function downloadJob($result, $silverpop, $type, $listId='')
   {
+    if (empty($result['JOB_ID']))
+    {
+      $this->logMessage("WARNING: Last job was not successfully created. Check the source in Silverpop.");
+      return;
+    }
+
     $file = str_replace('/download/', '', $result['FILE_PATH']);
 
     // Wait till its done
