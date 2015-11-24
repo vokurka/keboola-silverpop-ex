@@ -173,7 +173,7 @@ class Silverpop
     // Check if everything happend OK
     if ($status['JOB_STATUS'] != 'COMPLETE')
     {
-      throw new SilverpopException('An error occured while creating report in Silverpop.');
+      throw new SilverpopException('An error occured while creating report in Silverpop. Last job status response: '.json_encode($status));
     }
 
     $this->logMessage('Job finished for ID '.$result['JOB_ID']);
