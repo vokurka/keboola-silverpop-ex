@@ -60,6 +60,11 @@ class Silverpop
     {
       throw new SilverpopException("Country list must be an array.");
     }
+
+    if (!empty($ymlConfig['debug']))
+    {
+      $this->config['debug'] = true;
+    }
   }
 
   private function logMessage($message)
@@ -75,6 +80,11 @@ class Silverpop
       'password'       => $this->config['password'],
       'engage_server'  => $this->config['engage_server'],
     ));
+
+    if (!empty($this->config['debug']) && $this->config['debug'] === true)
+    {
+      $silverpop->setDebug(true);
+    }
 
     // export aggregated metrics
     if ($this->config['export_aggregated_reports'] === 1)

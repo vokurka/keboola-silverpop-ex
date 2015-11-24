@@ -16,6 +16,7 @@ class EngagePod {
     private $_jsessionid;
     private $_username;
     private $_password;
+    private $_debug = false;
 
     /**
      * Constructor
@@ -28,6 +29,11 @@ class EngagePod {
         // otherwise we are authenticating to the server once for every request
         $this->_baseUrl = 'http://api' . $config['engage_server'] . '.silverpop.com/XMLAPI';
         $this->_login($config['username'], $config['password']);
+    }
+
+    public function setDebug($debug)
+    {
+        $this->_debug = $debug;
     }
 
     /**
@@ -421,11 +427,23 @@ class EngagePod {
             "xml" => $xml,
         );
 
+        if ($this->_debug === true)
+        {
+            echo "Request: ";
+            print_r($fields);    
+        }
+
         $counter = 1;
         $response = $this->_httpPost($fields);
 
         do
         {
+            if ($this->_debug === true)
+            {
+                echo "Response: ";
+                print_r($response);    
+            }
+
             $arr = xml2array($response);
             
             if (isset($arr["Envelope"]["Body"]["RESULT"]["SUCCESS"])) 
