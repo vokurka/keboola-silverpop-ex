@@ -430,7 +430,7 @@ class EngagePod {
         if ($this->_debug === true)
         {
             echo "Request: ";
-            print_r($fields);    
+            print_r($xml);    
         }
 
         $counter = 1;
