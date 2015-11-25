@@ -10,7 +10,7 @@ class Silverpop
   private $mandatoryConfigColumns = array(
     'bucket', 
     'username', 
-    'password', 
+    '#password', 
     'engage_server', 
     'date_from', 
     'date_to',
@@ -77,7 +77,7 @@ class Silverpop
     // Initialize the library
     $silverpop = new EngagePod(array(
       'username'       => $this->config['username'],
-      'password'       => $this->config['password'],
+      'password'       => $this->config['#password'],
       'engage_server'  => $this->config['engage_server'],
     ));
 
@@ -197,7 +197,7 @@ class Silverpop
       throw new SilverpopException('Unable to connect');
     }
 
-    if (!ssh2_auth_password($connection, $this->config['username'], $this->config['password'])){
+    if (!ssh2_auth_password($connection, $this->config['username'], $this->config['#password'])){
       throw new SilverpopException('Unable to authenticate.');
     }
 
