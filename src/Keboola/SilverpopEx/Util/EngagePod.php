@@ -161,7 +161,7 @@ class EngagePod {
                     "MAILING_ID" => $mailingId,
                     "SEND_DATE_START" => $dateFrom,
                     "SEND_DATE_END" => $dateTo,
-                    //"MOVE_TO_FTP" => 1,
+                    "MOVE_TO_FTP" => 1,
                     "ALL_AGGREGATE_METRICS" => 1,
                     "AGGREGATE_SUMMARY" => 1,
                     "AGGREGATE_CLICKS" => 1,
