@@ -298,7 +298,7 @@ class Silverpop
       throw new SilverpopException("Unable to read: $file");
     }
 
-    $header = fgets($source);
+    $explodedHeader = fgetcsv($source);
 
     if (!file_exists($this->destinationFolder.$fileName))
     {
@@ -318,8 +318,9 @@ class Silverpop
     {
       $newHeader = array();
 
-      $explodedHeader = explode(',', $header);
-      $explodedHeader = array_map("removeQuotes", $explodedHeader);
+      //$explodedHeader = str_getcsv($header);
+      // $explodedHeader = explode(',', $header);
+      // $explodedHeader = array_map("removeQuotes", $explodedHeader);
 
       // Getting indexes of concerned columns
       foreach ($explodedHeader as $index => $columnName)
@@ -345,28 +346,26 @@ class Silverpop
         }
         else
         {
-          throw new SilverpopException("Unable to locate defined column in contact list.");
+          throw new SilverpopException("Unable to locate defined column '".$columnName."' in contact list.");
         }
       }
 
-      $header = '"'.implode('","', $newHeader)."\"\n";
+      $explodedHeader = $newHeader;      
     }
 
     // Analyzing header
     if ($writeHeader == true)
     {
       // Checking for headers longer than 64 characters (Storage API regulation)
-      $headerParts = explode(',', $header);
-      
-      foreach ($headerParts as $index => $part)
+      foreach ($explodedHeader as $index => $part)
       {
         if (strlen($part) > 64)
         {
-          $headerParts[$index] = substr($part, 0, 62).'"';
+          $explodedHeader[$index] = substr($part, 0, 62).'"';
         }
       }
 
-      $header = implode(',', $headerParts);
+      $header = '"'.implode('","', $explodedHeader)."\"\n";
 
       if (!empty($headerPrefix))
       {
@@ -379,15 +378,16 @@ class Silverpop
       $writeHeader = false;
     }
 
-    while ($row = fgets($source)) 
+    while ($explodedRow = fgetcsv($source))
     {
       // Selecting defined columns by the template in columns_in_contact_lists
       if ($destinationFile == 'contact_lists' && !empty($this->config['columns_in_contact_lists']))
       {
         $newRow = array();
 
-        $explodedRow = explode(',', $row);
-        $explodedRow = array_map("removeQuotes", $explodedRow);
+        // $explodedRow = str_getcsv($row);
+        // $explodedRow = explode(',', $row);
+        // $explodedRow = array_map("removeQuotes", $explodedRow);
 
         foreach ($this->config['columns_in_contact_lists'] as $columnName)
         {
@@ -397,12 +397,14 @@ class Silverpop
           }
           else
           {
-            throw new SilverpopException("Unable to locate defined cell in contact list.");
+            throw new SilverpopException("Unable to locate defined cell '".$columnName."' in contact list.");
           }
         }
 
-        $row = '"'.implode('","', $newRow)."\"\n";
+        $explodedRow = $newRow;
       }
+
+      $row = '"'.implode('","', $explodedRow)."\"\n";
 
       // Adding prefix to the row
       if (!empty($rowPrefix))
