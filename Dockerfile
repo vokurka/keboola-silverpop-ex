@@ -2,7 +2,7 @@ FROM keboola/base-php56
 
 MAINTAINER Vojtech Kurka <vokurka@keboola.com>
 
-ENV APP_VERSION 1.2.9
+ENV APP_VERSION 1.3.0
 
 RUN yum -y --enablerepo=epel,remi,remi-php56 upgrade
 RUN yum -y --enablerepo=epel,remi,remi-php56 install \

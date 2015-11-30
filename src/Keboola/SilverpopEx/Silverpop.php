@@ -391,7 +391,7 @@ class Silverpop
 
         foreach ($this->config['columns_in_contact_lists'] as $columnName)
         {
-          if (!empty($explodedRow[$columnIndexes[$columnName]]))
+          if (isset($explodedRow[$columnIndexes[$columnName]]))
           {
             $newRow[] = $explodedRow[$columnIndexes[$columnName]];
           }
