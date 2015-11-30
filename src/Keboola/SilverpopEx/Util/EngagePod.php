@@ -511,3 +511,9 @@ class EngagePod {
     }
 
 }
+
+// Function for mapping
+function removeQuotes($string)
+{
+    return str_replace('"', '', $string);
+}

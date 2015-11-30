@@ -61,10 +61,18 @@ class Silverpop
       throw new SilverpopException("Country list must be an array.");
     }
 
+    if (isset($ymlConfig['columns_in_contact_lists']) && !empty($ymlConfig['columns_in_contact_lists']))
+    {
+      $this->config['columns_in_contact_lists'] = $ymlConfig['columns_in_contact_lists'];
+    }
+
     if (!empty($ymlConfig['debug']))
     {
       $this->config['debug'] = true;
     }
+
+    // print_r($this->config);
+    // exit;
   }
 
   private function logMessage($message)
@@ -136,11 +144,11 @@ class Silverpop
   {
     $this->logMessage('Downloading contact lists.');
 
-    foreach ($this->config['lists_to_download'] as $list)
+    foreach ($this->config['lists_to_download'] as $listName => $list)
     {
       $result = $silverpop->exportList($list, $this->config['date_from'], $this->config['date_to']);
 
-      $this->downloadJob($result, $silverpop, 'contact_lists', $list);
+      $this->downloadJob($result, $silverpop, 'contact_lists', $listName.'","'.$list);
     }
 
     $this->logMessage('Download completed for contact lists.');
@@ -150,7 +158,7 @@ class Silverpop
   {
     $this->logMessage('Downloading events.');
 
-    foreach ($this->config['lists_to_download'] as $list)
+    foreach ($this->config['lists_to_download'] as $listName => $list)
     {
       $result = $silverpop->rawRecipientDataExport($list, $this->config['date_from'], $this->config['date_to']);
 
@@ -227,11 +235,11 @@ class Silverpop
 
     if ($type == 'contact_lists')
     {
-      $this->loadFile($this->localDir.$file, $this->config['bucket'], $type, true, 'LIST_ID', $listId);
+      $this->loadFile($this->localDir.$file, $this->config['bucket'], $type, true, 'LIST_NAME","LIST_ID', $listId);
     }
     else if ($type == 'events')
     {
-      $this->extractAndLoad($this->localDir.$file, $this->config['bucket'], array('Raw Recipient Data Export' => 'events'), 'LIST_ID', $listId);
+      $this->extractAndLoad($this->localDir.$file, $this->config['bucket'], array('Raw Recipient Data Export' => 'events'), 'LIST_NAME","LIST_ID', $listId);
     }
     else
     {
@@ -279,7 +287,7 @@ class Silverpop
     $this->logMessage('Data extracted and loaded from file '.$zipFolder);
   }
 
-    // loads CSV file and consolidates its data into destination file
+  // loads CSV file and consolidates its data into destination file
   private function loadFile($file, $bucket, $destinationFile, $writeHeader, $headerPrefix='', $rowPrefix='')
   {
     $fileName = $bucket.'.'.$destinationFile;
@@ -303,8 +311,51 @@ class Silverpop
       throw new SilverpopException("Unable to write: {$this->destinationFolder}.{$fileName}");
     }
 
+    // Selecting the right columns for writing (now for contact_lists)
+    $columnIndexes = array();
+
+    if ($destinationFile == 'contact_lists' && !empty($this->config['columns_in_contact_lists']))
+    {
+      $newHeader = array();
+
+      $explodedHeader = explode(',', $header);
+      $explodedHeader = array_map("removeQuotes", $explodedHeader);
+
+      // Getting indexes of concerned columns
+      foreach ($explodedHeader as $index => $columnName)
+      {
+        if (in_array($columnName, $this->config['columns_in_contact_lists']))
+        {
+          $columnIndexes[$columnName] = $index;
+        }
+      }
+
+      // Checking if we have everything defined
+      if (count($columnIndexes) != count($this->config['columns_in_contact_lists']))
+      {
+        throw new SilverpopException("Could not find all the columns in the dataset liek defined in configuration.");
+      }
+
+      // Selecting all the columns according to definition
+      foreach ($this->config['columns_in_contact_lists'] as $columnName)
+      {
+        if (!empty($explodedHeader[$columnIndexes[$columnName]]))
+        {
+          $newHeader[] = $explodedHeader[$columnIndexes[$columnName]];
+        }
+        else
+        {
+          throw new SilverpopException("Unable to locate defined column in contact list.");
+        }
+      }
+
+      $header = '"'.implode('","', $newHeader)."\"\n";
+    }
+
+    // Analyzing header
     if ($writeHeader == true)
     {
+      // Checking for headers longer than 64 characters (Storage API regulation)
       $headerParts = explode(',', $header);
       
       foreach ($headerParts as $index => $part)
@@ -322,6 +373,7 @@ class Silverpop
         $header = '"'.$headerPrefix.'",'.$header;
       }
 
+      // Finally writing headers
       fwrite($destination, $header);
 
       $writeHeader = false;
@@ -329,11 +381,36 @@ class Silverpop
 
     while ($row = fgets($source)) 
     {
+      // Selecting defined columns by the template in columns_in_contact_lists
+      if ($destinationFile == 'contact_lists' && !empty($this->config['columns_in_contact_lists']))
+      {
+        $newRow = array();
+
+        $explodedRow = explode(',', $row);
+        $explodedRow = array_map("removeQuotes", $explodedRow);
+
+        foreach ($this->config['columns_in_contact_lists'] as $columnName)
+        {
+          if (!empty($explodedRow[$columnIndexes[$columnName]]))
+          {
+            $newRow[] = $explodedRow[$columnIndexes[$columnName]];
+          }
+          else
+          {
+            throw new SilverpopException("Unable to locate defined cell in contact list.");
+          }
+        }
+
+        $row = '"'.implode('","', $newRow)."\"\n";
+      }
+
+      // Adding prefix to the row
       if (!empty($rowPrefix))
       {
         $row = '"'.$rowPrefix.'",'.$row;
       }
 
+      // Actually writing the row
       fwrite($destination, $row);
     }
 
