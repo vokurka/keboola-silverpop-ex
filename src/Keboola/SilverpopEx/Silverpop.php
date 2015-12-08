@@ -162,7 +162,7 @@ class Silverpop
     {
       $result = $silverpop->rawRecipientDataExport($list, $this->config['date_from'], $this->config['date_to']);
 
-      $this->downloadJob($result, $silverpop, 'events', $list);
+      $this->downloadJob($result, $silverpop, 'events', $listName.'","'.$list);
     }
 
     $this->logMessage('Download completed for events.');
