@@ -235,7 +235,7 @@ class Silverpop
 
     if ($type == 'contact_lists')
     {
-      $this->loadFile($this->localDir.$file, $this->config['bucket'], $type, true, 'LIST_NAME","LIST_ID', $listId);
+      $this->loadFile($this->localDir.$file, $this->config['bucket'], $type, false, 'LIST_NAME","LIST_ID', $listId);
     }
     else if ($type == 'events')
     {
