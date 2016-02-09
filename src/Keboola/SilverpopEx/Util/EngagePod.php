@@ -191,7 +191,7 @@ class EngagePod {
     /**
      * Creates job for data extract for contact list
      */
-    public function exportList($listId, $dateFrom, $dateTo) {
+    public function exportList($listId, $dateFrom, $dateTo, $format='CSV') {
         $data["Envelope"] = array(
             "Body" => array(
                 "ExportList" => array(
@@ -204,6 +204,7 @@ class EngagePod {
                     "LIST_DATE_FORMAT" => "yyyy-MM-dd",
                     "INCLUDE_LEAD_SOURCE" => true,
                     "INCLUDE_RECIPIENT_ID" => true,
+                    "EXPORT_FORMAT" => $format,
                     //"MOVE_TO_FTP" => 1,
                 ),
             ),
@@ -220,7 +221,17 @@ class EngagePod {
     /**
      * Creates job for data extract about events
      */
-    public function rawRecipientDataExport($listId, $dateFrom, $dateTo) {
+    public function rawRecipientDataExport($listId, $dateFrom, $dateTo, $format='CSV') {
+        $formatCode = 0;
+        if ($format == 'PIPE')
+        {
+            $formatCode = 1;
+        }
+        else if ($format == 'TAB')
+        {
+            $formatCode = 2;
+        }
+
         $data["Envelope"] = array(
             "Body" => array(
                 "RawRecipientDataExport" => array(
@@ -235,6 +246,7 @@ class EngagePod {
                     "RETURN_SUBJECT" => 1,
                     "RETURN_MAILING_NAME" => 1,
                     "MOVE_TO_FTP" => 1,
+                    "EXPORT_FORMAT" => $formatCode,
                 ),
             ),
         );
@@ -452,6 +464,7 @@ class EngagePod {
             } 
             else 
             {
+                print_r($arr);
                 throw new \Exception("HTTP Error: Invalid data from the server");
             }
 

@@ -71,6 +71,12 @@ class Silverpop
       $this->config['debug'] = true;
     }
 
+    $this->config['format'] = "CSV";
+    if (!empty($ymlConfig['format']))
+    {
+      $this->config['format'] = $ymlConfig['format'];
+    }
+
     // print_r($this->config);
     // exit;
   }
@@ -78,6 +84,24 @@ class Silverpop
   private function logMessage($message)
   {
     echo($message."\n");
+  }
+
+  private function getDelimiterFromFormat($format)
+  {
+    if ($format == 'CSV')
+    {
+      return ",";
+    }
+    else if ($format == 'PIPE')
+    {
+      return "|";
+    }
+    else if ($format == 'TAB')
+    {
+      return "\t";
+    }
+
+    return "";
   }
 
   public function run()
@@ -146,7 +170,7 @@ class Silverpop
 
     foreach ($this->config['lists_to_download'] as $listName => $list)
     {
-      $result = $silverpop->exportList($list, $this->config['date_from'], $this->config['date_to']);
+      $result = $silverpop->exportList($list, $this->config['date_from'], $this->config['date_to'], $this->config['format']);
 
       $this->downloadJob($result, $silverpop, 'contact_lists', $listName.'","'.$list);
     }
@@ -160,7 +184,7 @@ class Silverpop
 
     foreach ($this->config['lists_to_download'] as $listName => $list)
     {
-      $result = $silverpop->rawRecipientDataExport($list, $this->config['date_from'], $this->config['date_to']);
+      $result = $silverpop->rawRecipientDataExport($list, $this->config['date_from'], $this->config['date_to'], $this->config['format']);
 
       $this->downloadJob($result, $silverpop, 'events', $listName.'","'.$list);
     }
@@ -272,6 +296,8 @@ class Silverpop
       $fileName = explode('/', $file);
       $fileName = $fileName[count($fileName)-1];
       $fileName = str_replace('.csv', '', $fileName);
+      $fileName = str_replace('.pipe', '', $fileName);
+      $fileName = str_replace('.tab', '', $fileName);
 
       foreach ($renames as $match => $newName)
       {
@@ -298,7 +324,7 @@ class Silverpop
       throw new SilverpopException("Unable to read: $file");
     }
 
-    $explodedHeader = fgetcsv($source);
+    $explodedHeader = fgetcsv($source, 0, $this->getDelimiterFromFormat($this->config['format']));
 
     if (!file_exists($this->destinationFolder.$fileName))
     {
@@ -334,7 +360,7 @@ class Silverpop
       // Checking if we have everything defined
       if (count($columnIndexes) != count($this->config['columns_in_contact_lists']))
       {
-        throw new SilverpopException("Could not find all the columns in the dataset liek defined in configuration.");
+        throw new SilverpopException("Could not find all the columns in the dataset like defined in configuration.");
       }
 
       // Selecting all the columns according to definition
@@ -378,7 +404,7 @@ class Silverpop
       $writeHeader = false;
     }
 
-    while ($explodedRow = fgetcsv($source))
+    while ($explodedRow = fgetcsv($source, 0, $this->getDelimiterFromFormat($this->config['format'])))
     {
       // Selecting defined columns by the template in columns_in_contact_lists
       if ($destinationFile == 'contact_lists' && !empty($this->config['columns_in_contact_lists']))
