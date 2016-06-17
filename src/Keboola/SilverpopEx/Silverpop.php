@@ -172,7 +172,7 @@ class Silverpop
     {
       $result = $silverpop->exportList($list, $this->config['date_from'], $this->config['date_to'], $this->config['format']);
 
-      $this->downloadJob($result, $silverpop, 'contact_lists', $listName.'","'.$list);
+      $this->downloadJob($result, $silverpop, 'contact_lists', array($listName,$list));
     }
 
     $this->logMessage('Download completed for contact lists.');
@@ -186,13 +186,13 @@ class Silverpop
     {
       $result = $silverpop->rawRecipientDataExport($list, $this->config['date_from'], $this->config['date_to'], $this->config['format']);
 
-      $this->downloadJob($result, $silverpop, 'events', $listName.'","'.$list);
+      $this->downloadJob($result, $silverpop, 'events', array($listName, $list));
     }
 
     $this->logMessage('Download completed for events.');
   }
 
-  private function downloadJob($result, $silverpop, $type, $listId='')
+  private function downloadJob($result, $silverpop, $type, $listId=array())
   {
     if (empty($result['JOB_ID']))
     {
@@ -210,7 +210,7 @@ class Silverpop
 
     	$status = $silverpop->getJobStatus($result['JOB_ID']);
       $counter++;
-    } while (!in_array($status['JOB_STATUS'], array('COMPLETE', 'CANCELLED', 'ERROR')) && $counter < 1800);
+    } while (!in_array($status['JOB_STATUS'], array('COMPLETE', 'CANCELLED', 'ERROR')) && $counter < 3600);
 
     // Check if everything happend OK
     if ($status['JOB_STATUS'] != 'COMPLETE')
@@ -259,11 +259,11 @@ class Silverpop
 
     if ($type == 'contact_lists')
     {
-      $this->loadFile($this->localDir.$file, $this->config['bucket'], $type, false, 'LIST_NAME","LIST_ID', $listId);
+      $this->loadFile($this->localDir.$file, $this->config['bucket'], $type, false, array('LIST_NAME','LIST_ID'), $listId);
     }
     else if ($type == 'events')
     {
-      $this->extractAndLoad($this->localDir.$file, $this->config['bucket'], array('Raw Recipient Data Export' => 'events'), 'LIST_NAME","LIST_ID', $listId);
+      $this->extractAndLoad($this->localDir.$file, $this->config['bucket'], array('Raw Recipient Data Export' => 'events'), array('LIST_NAME', 'LIST_ID'), $listId);
     }
     else
     {
@@ -274,7 +274,7 @@ class Silverpop
   }
 
   // Extracts file from zip and consolidates data into output file
-  private function extractAndLoad($file, $bucket, $renames=array(), $headerPrefix='', $rowPrefix='')
+  private function extractAndLoad($file, $bucket, $renames=array(), $headerPrefix=array(), $rowPrefix=array())
   {
     $writeHeader = false;
     $zipFolder = str_replace('.zip', '', $file);
@@ -314,7 +314,7 @@ class Silverpop
   }
 
   // loads CSV file and consolidates its data into destination file
-  private function loadFile($file, $bucket, $destinationFile, $writeHeader, $headerPrefix='', $rowPrefix='')
+  private function loadFile($file, $bucket, $destinationFile, $writeHeader, $headerPrefix=array(), $rowPrefix=array())
   {
     $fileName = $bucket.'.'.$destinationFile;
 
@@ -343,10 +343,6 @@ class Silverpop
     if ($destinationFile == 'contact_lists' && !empty($this->config['columns_in_contact_lists']))
     {
       $newHeader = array();
-
-      //$explodedHeader = str_getcsv($header);
-      // $explodedHeader = explode(',', $header);
-      // $explodedHeader = array_map("removeQuotes", $explodedHeader);
 
       // Getting indexes of concerned columns
       foreach ($explodedHeader as $index => $columnName)
@@ -387,19 +383,18 @@ class Silverpop
       {
         if (strlen($part) > 64)
         {
-          $explodedHeader[$index] = substr($part, 0, 62).'"';
+          // $explodedHeader[$index] = substr($part, 0, 62).'"';
+          $explodedHeader[$index] = substr($part, 0, 62);
         }
       }
 
-      $header = '"'.implode('","', $explodedHeader)."\"\n";
-
       if (!empty($headerPrefix))
       {
-        $header = '"'.$headerPrefix.'",'.$header;
+        $explodedHeader = array_merge($headerPrefix, $explodedHeader);
       }
 
       // Finally writing headers
-      fwrite($destination, $header);
+      fputcsv($destination, $explodedHeader);
 
       $writeHeader = false;
     }
@@ -410,10 +405,6 @@ class Silverpop
       if ($destinationFile == 'contact_lists' && !empty($this->config['columns_in_contact_lists']))
       {
         $newRow = array();
-
-        // $explodedRow = str_getcsv($row);
-        // $explodedRow = explode(',', $row);
-        // $explodedRow = array_map("removeQuotes", $explodedRow);
 
         foreach ($this->config['columns_in_contact_lists'] as $columnName)
         {
@@ -430,16 +421,14 @@ class Silverpop
         $explodedRow = $newRow;
       }
 
-      $row = '"'.implode('","', $explodedRow)."\"\n";
-
       // Adding prefix to the row
       if (!empty($rowPrefix))
       {
-        $row = '"'.$rowPrefix.'",'.$row;
+        $explodedRow = array_merge($rowPrefix, $explodedRow);
       }
 
       // Actually writing the row
-      fwrite($destination, $row);
+      fputcsv($destination, $explodedRow);
     }
 
     fclose($source);
