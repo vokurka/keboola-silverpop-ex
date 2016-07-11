@@ -76,6 +76,12 @@ class Silverpop
     {
       $this->config['format'] = $ymlConfig['format'];
     }
+    
+    $this->config['param'] = array();
+    if (!empty($ymlConfig['param']))
+    {
+      $this->config['param'] = (array) $ymlConfig['param'];
+    }
 
     // print_r($this->config);
     // exit;
@@ -184,7 +190,7 @@ class Silverpop
 
     foreach ($this->config['lists_to_download'] as $listName => $list)
     {
-      $result = $silverpop->rawRecipientDataExport($list, $this->config['date_from'], $this->config['date_to'], $this->config['format']);
+      $result = $silverpop->rawRecipientDataExport($list, $this->config['date_from'], $this->config['date_to'], $this->config['format'], $this->config['param']);
 
       $this->downloadJob($result, $silverpop, 'events', array($listName, $list));
     }
