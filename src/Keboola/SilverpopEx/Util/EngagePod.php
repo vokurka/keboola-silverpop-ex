@@ -221,7 +221,7 @@ class EngagePod {
     /**
      * Creates job for data extract about events
      */
-    public function rawRecipientDataExport($listId, $dateFrom, $dateTo, $format='CSV', $param = array()) {
+    public function rawRecipientDataExport($listId, $dateFrom, $dateTo, $format='CSV', $eventParam = array()) {
         $formatCode = 0;
         if ($format == 'PIPE')
         {
@@ -246,11 +246,11 @@ class EngagePod {
                     "MOVE_TO_FTP" => 1,
                     "EXPORT_FORMAT" => $formatCode,
                 );
-        $param = array_merge($defatultParam, $param);
+        $eventParam = array_merge($defatultParam, $eventParam);
 
         $data["Envelope"] = array(
             "Body" => array(
-                "RawRecipientDataExport" => $param,
+                "RawRecipientDataExport" => $eventParam,
             ),
         );
         $response = $this->_request($data);

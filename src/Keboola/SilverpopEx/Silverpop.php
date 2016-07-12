@@ -77,10 +77,10 @@ class Silverpop
       $this->config['format'] = $ymlConfig['format'];
     }
     
-    $this->config['param'] = array();
-    if (!empty($ymlConfig['param']))
+    $this->config['event_param'] = array();
+    if (!empty($ymlConfig['event_param']))
     {
-      $this->config['param'] = (array) $ymlConfig['param'];
+      $this->config['event_param'] = (array) $ymlConfig['event_param'];
     }
 
     // print_r($this->config);
@@ -190,7 +190,7 @@ class Silverpop
 
     foreach ($this->config['lists_to_download'] as $listName => $list)
     {
-      $result = $silverpop->rawRecipientDataExport($list, $this->config['date_from'], $this->config['date_to'], $this->config['format'], $this->config['param']);
+      $result = $silverpop->rawRecipientDataExport($list, $this->config['date_from'], $this->config['date_to'], $this->config['format'], $this->config['event_param']);
 
       $this->downloadJob($result, $silverpop, 'events', array($listName, $list));
     }
