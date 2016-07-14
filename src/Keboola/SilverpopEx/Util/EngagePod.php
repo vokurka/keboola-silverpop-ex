@@ -246,7 +246,7 @@ class EngagePod {
                     "MOVE_TO_FTP" => 1,
                     "EXPORT_FORMAT" => $formatCode,
                 );
-        $eventParam = array_merge($defatultParam, $eventParam);
+        $eventParam = array_merge($defaultParam, $eventParam);
 
         $data["Envelope"] = array(
             "Body" => array(
