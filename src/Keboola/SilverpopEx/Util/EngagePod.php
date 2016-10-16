@@ -203,7 +203,7 @@ class EngagePod {
                     "FILE_ENCODING" => "UTF-8",
                     "LIST_DATE_FORMAT" => "yyyy-MM-dd",
                     "INCLUDE_LEAD_SOURCE" => true,
-                    "INCLUDE_RECIPIENT_ID" => true,
+                    //"INCLUDE_RECIPIENT_ID" => true,
                     "EXPORT_FORMAT" => $format,
                     //"MOVE_TO_FTP" => 1,
                 ),
