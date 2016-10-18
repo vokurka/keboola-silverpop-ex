@@ -191,7 +191,7 @@ class EngagePod {
     /**
      * Creates job for data extract for contact list
      */
-    public function exportList($listId, $dateFrom, $dateTo, $format='CSV') {
+    public function exportList($listId, $dateFrom, $dateTo, $exportColumns, $format='CSV') {
         $data["Envelope"] = array(
             "Body" => array(
                 "ExportList" => array(
@@ -203,12 +203,15 @@ class EngagePod {
                     "FILE_ENCODING" => "UTF-8",
                     "LIST_DATE_FORMAT" => "yyyy-MM-dd",
                     "INCLUDE_LEAD_SOURCE" => true,
-                    //"INCLUDE_RECIPIENT_ID" => true,
+                    "INCLUDE_RECIPIENT_ID" => true,
                     "EXPORT_FORMAT" => $format,
-                    //"MOVE_TO_FTP" => 1,
+                    "MOVE_TO_FTP" => 1,
                 ),
             ),
         );
+        if ($exportColumns) {
+            $data["Envelope"]["Body"]["ExportList"]["EXPORT_COLUMNS"] = array("COLUMN" => $exportColumns);
+        }
         $response = $this->_request($data);
         $result = $response["Envelope"]["Body"]["RESULT"];
         if ($this->_isSuccess($result)) {
