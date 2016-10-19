@@ -176,7 +176,7 @@ class Silverpop
 
     foreach ($this->config['lists_to_download'] as $listName => $list)
     {
-      $result = $silverpop->exportList($list, $this->config['date_from'], $this->config['date_to'], $this->config['format']);
+      $result = $silverpop->exportList($list, $this->config['date_from'], $this->config['date_to'], $this->config['columns_in_contact_lists'], $this->config['format']);
 
       $this->downloadJob($result, $silverpop, 'contact_lists', array($listName,$list));
     }
@@ -343,44 +343,6 @@ class Silverpop
       throw new SilverpopException("Unable to write: {$this->destinationFolder}.{$fileName}");
     }
 
-    // Selecting the right columns for writing (now for contact_lists)
-    $columnIndexes = array();
-
-    if ($destinationFile == 'contact_lists' && !empty($this->config['columns_in_contact_lists']))
-    {
-      $newHeader = array();
-
-      // Getting indexes of concerned columns
-      foreach ($explodedHeader as $index => $columnName)
-      {
-        if (in_array($columnName, $this->config['columns_in_contact_lists']))
-        {
-          $columnIndexes[$columnName] = $index;
-        }
-      }
-
-      // Checking if we have everything defined
-      if (count($columnIndexes) != count($this->config['columns_in_contact_lists']))
-      {
-        throw new SilverpopException("Could not find all the columns in the dataset like defined in configuration.");
-      }
-
-      // Selecting all the columns according to definition
-      foreach ($this->config['columns_in_contact_lists'] as $columnName)
-      {
-        if (!empty($explodedHeader[$columnIndexes[$columnName]]))
-        {
-          $newHeader[] = $explodedHeader[$columnIndexes[$columnName]];
-        }
-        else
-        {
-          throw new SilverpopException("Unable to locate defined column '".$columnName."' in contact list.");
-        }
-      }
-
-      $explodedHeader = $newHeader;      
-    }
-
     // Analyzing header
     if ($writeHeader == true)
     {
@@ -407,25 +369,6 @@ class Silverpop
 
     while ($explodedRow = fgetcsv($source, 0, $this->getDelimiterFromFormat($this->config['format'])))
     {
-      // Selecting defined columns by the template in columns_in_contact_lists
-      if ($destinationFile == 'contact_lists' && !empty($this->config['columns_in_contact_lists']))
-      {
-        $newRow = array();
-
-        foreach ($this->config['columns_in_contact_lists'] as $columnName)
-        {
-          if (isset($explodedRow[$columnIndexes[$columnName]]))
-          {
-            $newRow[] = $explodedRow[$columnIndexes[$columnName]];
-          }
-          else
-          {
-            throw new SilverpopException("Unable to locate defined cell '".$columnName."' in contact list.");
-          }
-        }
-
-        $explodedRow = $newRow;
-      }
 
       // Adding prefix to the row
       if (!empty($rowPrefix))
