@@ -65,6 +65,10 @@ class Silverpop
     {
       $this->config['columns_in_contact_lists'] = $ymlConfig['columns_in_contact_lists'];
     }
+    else
+    {
+      $this->config['columns_in_contact_lists'] = array();
+    }
 
     if (!empty($ymlConfig['debug']))
     {

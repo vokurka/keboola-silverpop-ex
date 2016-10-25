@@ -209,7 +209,7 @@ class EngagePod {
                 ),
             ),
         );
-        if ($exportColumns) {
+        if (!empty($exportColumns)) {
             $data["Envelope"]["Body"]["ExportList"]["EXPORT_COLUMNS"] = array("COLUMN" => $exportColumns);
         }
         $response = $this->_request($data);
