@@ -41,6 +41,8 @@ Configuration looks like this:
 
 First part describes credentials with correct Engage server to connect to. Also, you must specify bucket that serves as destination for storing the data.
 
+*IMPORTANT NOTE:* User used for API must be Organization Admin. Sorry folks.
+
 Second part describes date from and date to for downloading the data. It supports both classic DateTime formats as well as all the syntax you can use in PHP function (http://www.w3schools.com/php/func_date_strtotime.asp).
 
 Third part tells the extractor what to download. 0 = do NOT download, 1 = download. You can turn on/off as the features as you wish. Note that the most time and resource consuming feature is (in paradox) aggregated_reports, because it must download report for each mailing you have in Silverpop. Be carefull.
