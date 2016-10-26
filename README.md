@@ -11,7 +11,7 @@ Configuration looks like this:
 {
   "username": "username@domain.com",
   "#password": "secret_password",
-  "engage_server": "1",
+  "engage_server": "<number of your engage server>",
   "bucket": "in.c-ex-silverpop-client_name",
 
   "date_from": "-14 days",
@@ -41,13 +41,17 @@ Configuration looks like this:
 
 First part describes credentials with correct Engage server to connect to. Also, you must specify bucket that serves as destination for storing the data.
 
-*IMPORTANT NOTE:* User used for API must be Organization Admin. Sorry folks.
+*IMPORTANT NOTE:* User used for API must be Organization Admin.
+
+*IMPORTANT NOTE2:* Number of engage server - just look at your login URL to the Silverpop (something like login6.silverpop.com) and take the number, put it into the configuration. Easy!
 
 Second part describes date from and date to for downloading the data. It supports both classic DateTime formats as well as all the syntax you can use in PHP function (http://www.w3schools.com/php/func_date_strtotime.asp).
 
 Third part tells the extractor what to download. 0 = do NOT download, 1 = download. You can turn on/off as the features as you wish. Note that the most time and resource consuming feature is (in paradox) aggregated_reports, because it must download report for each mailing you have in Silverpop. Be carefull.
 
-If you enable events or contact list download, you must specify "lists_to_download". It has a name (you can choose whatever you like - it is used as list identifier in the column in result table) and ID from Silverpop.
+If you enable events or contact list download, you must specify "lists_to_download". It has a name (you can choose whatever you like - it is used as list identifier in the column in result table) and ID from Silverpop. 
+
+*IMPORTANT NOTE3:* You can find List IDs in Silverpop UI. Just go to Databases and hover your mouse cursor over the name of your database. A note saying LIST ID: 1234 will show up.
 
 "columns_in_contact_lists" specifies columns in contact lists downloaded. It is optional, but recommended. When you define the contact lists to download, it is downloaded into one table. And a problem rises when you have different structure of the contact lists. When you specify columns that are present in ALL contact lists, it is properly merged together.
 
