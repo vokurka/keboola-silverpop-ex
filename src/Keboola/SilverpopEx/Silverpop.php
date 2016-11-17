@@ -39,7 +39,7 @@ class Silverpop
     }
 
     $this->config['sftp_port'] = 22;
-    $this->config['sftp_username'] = $this->sanitizeUsername($ymlConfig['username']);
+    $this->config['sftp_username'] = $ymlConfig['username'];
 
     foreach (array('date_from', 'date_to') as $dateId)
     {
@@ -153,11 +153,6 @@ class Silverpop
     }
   }
 
-  private function sanitizeUsername($username)
-  {
-    return str_replace('@', '%40', $username);
-  }
-
   private function exportAggregatedMetrics($silverpop)
   {
     $this->logMessage('Downloading aggregated metrics.');
@@ -237,41 +232,12 @@ class Silverpop
     $this->logMessage('Job finished for ID '.$result['JOB_ID']);
 
     // ================== Download data from SFTP ==================
-    if (!function_exists("ssh2_connect")){
-      throw new SilverpopException('Function ssh2_connect not found, you cannot use ssh2 here');
+    $sftp = new Net_SFTP('transfer'.$this->config['engage_server'].'.silverpop.com');
+    if (!$sftp->login($this->config['username'], $this->config['#password'])) {
+      exit('Login Failed');
     }
 
-    if (!$connection = ssh2_connect('transfer'.$this->config['engage_server'].'.silverpop.com', $this->config['sftp_port'])){
-      throw new SilverpopException('Unable to connect');
-    }
-
-    if (!ssh2_auth_password($connection, $this->config['username'], $this->config['#password'])){
-      throw new SilverpopException('Unable to authenticate.');
-    }
-
-    if (!$stream = ssh2_sftp($connection)){
-      throw new SilverpopException('Unable to create a stream.');
-    }
-
-    if (!$dir = opendir("ssh2.sftp://{$stream}/{$this->remoteDir}")){
-      throw new SilverpopException('Could not open the directory');
-    }
-
-    $remFile = htmlentities($file);
-    if (!$remote = fopen("ssh2.sftp://{$stream}/{$this->remoteDir}{$remFile}", 'r'))
-    {
-      throw new SilverpopException("Unable to open remote file: $remFile");
-    }
-
-    if (!$local = @fopen($this->localDir . $file, 'w'))
-    {
-      throw new SilverpopException("Unable to create local file: $file");
-    }
-
-    stream_copy_to_stream($remote, $local);
-
-    fclose($local);
-    fclose($remote);
+    $sftp->get("{$this->remoteDir}{$file}", $this->localDir . $file);
 
     if ($type == 'contact_lists')
     {
