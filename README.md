@@ -35,7 +35,9 @@ Configuration looks like this:
 
   "debug": 1,
 
-  "format": "PIPE"
+  "format": "PIPE",
+
+  "csv_escape_character": "\""
 }
 ```
 
@@ -58,5 +60,7 @@ If you enable events or contact list download, you must specify "lists_to_downlo
 "debug" option is there for debugging problems with Silverpop API. It will enable logging of ALL requests and response that goes to and from Silverpop API. This option produce a HUGE amount of log data, so please remember to turn it off in production. It is supposed to be only for debugging problems.
 
 "format" is an option for downloading data about contacts and events with different delimiter (it affects only delimiter for transport between Silverpop API and Docker container - KBC Storage will get standard CSV). This is here because Silverpop has error in their CSV generating function - when there is comma in mailing subject, it produces invalid CSV. Possible values for this option are "CSV", "PIPE" and "TAB" (pretty self-explaining). Default is CSV, so if you do not encounter problem with commas, you do not have to include this option in configuration at all.
+
+"csv_escape_character" is option for setting, which character should be used for parsing and writing CSV files. PHP has strangly set up default of this character to the backslash, which is not entirely RFC compliant. So, if you find yourself in situation where you have for example backslash as last character in your data before quote, it can mess up the whole CSV. Should you be in this situation, just change this escape character to quote and it should work like expected.
 
 In case of questions or problems, contact directly vokurka@keboola.com.

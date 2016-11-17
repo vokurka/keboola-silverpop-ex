@@ -87,6 +87,12 @@ class Silverpop
       $this->config['event_param'] = (array) $ymlConfig['event_param'];
     }
 
+    $this->config['csv_escape_character'] = "\\";
+    if (!empty($ymlConfig['csv_escape_character']))
+    {
+      $this->config['csv_escape_character'] = $ymlConfig['csv_escape_character'];
+    }
+
     // print_r($this->config);
     // exit;
   }
@@ -134,16 +140,16 @@ class Silverpop
       $this->exportAggregatedMetrics($silverpop);
     }
 
-    // export contact list
-    if ($this->config['export_contact_lists'] === 1)
-    {
-      $this->exportContactLists($silverpop);
-    }
-
     // export events
     if ($this->config['export_events'] === 1)
     {
       $this->exportEvents($silverpop);
+    }
+
+    // export contact list
+    if ($this->config['export_contact_lists'] === 1)
+    {
+      $this->exportContactLists($silverpop);
     }
   }
 
@@ -334,7 +340,7 @@ class Silverpop
       throw new SilverpopException("Unable to read: $file");
     }
 
-    $explodedHeader = fgetcsv($source, 0, $this->getDelimiterFromFormat($this->config['format']));
+    $explodedHeader = fgetcsv($source, 0, $this->getDelimiterFromFormat($this->config['format']), "\"", $this->config['csv_escape_character']);
 
     if (!file_exists($this->destinationFolder.$fileName))
     {
@@ -366,12 +372,12 @@ class Silverpop
       }
 
       // Finally writing headers
-      fputcsv($destination, $explodedHeader);
+      fputcsv($destination, $explodedHeader, ",", "\"", $this->config['csv_escape_character']);
 
       $writeHeader = false;
     }
 
-    while ($explodedRow = fgetcsv($source, 0, $this->getDelimiterFromFormat($this->config['format'])))
+    while ($explodedRow = fgetcsv($source, 0, $this->getDelimiterFromFormat($this->config['format']), "\"", $this->config['csv_escape_character']))
     {
 
       // Adding prefix to the row
@@ -381,7 +387,7 @@ class Silverpop
       }
 
       // Actually writing the row
-      fputcsv($destination, $explodedRow);
+      fputcsv($destination, $explodedRow, ",", "\"", $this->config['csv_escape_character']);
     }
 
     fclose($source);
