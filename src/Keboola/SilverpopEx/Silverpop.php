@@ -93,6 +93,12 @@ class Silverpop
       $this->config['csv_escape_character'] = $ymlConfig['csv_escape_character'];
     }
 
+    $this->config['sent_mailings_only'] = 1;
+    if (isset($ymlConfig['sent_mailings_only']) && $ymlConfig['sent_mailings_only'] == 0)
+    {
+      $this->config['sent_mailings_only'] = 0;
+    }
+
     // print_r($this->config);
     // exit;
   }
@@ -195,7 +201,7 @@ class Silverpop
 
     foreach ($this->config['lists_to_download'] as $listName => $list)
     {
-      $result = $silverpop->rawRecipientDataExport($list, $this->config['date_from'], $this->config['date_to'], $this->config['format'], $this->config['event_param']);
+      $result = $silverpop->rawRecipientDataExport($list, $this->config['date_from'], $this->config['date_to'], $this->config['format'], $this->config['event_param'], $this->config['sent_mailings_only']);
 
       $this->downloadJob($result, $silverpop, 'events', array($listName, $list));
     }

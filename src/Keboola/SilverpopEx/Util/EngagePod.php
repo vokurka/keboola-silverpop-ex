@@ -224,7 +224,7 @@ class EngagePod {
     /**
      * Creates job for data extract about events
      */
-    public function rawRecipientDataExport($listId, $dateFrom, $dateTo, $format='CSV', $eventParam = array()) {
+    public function rawRecipientDataExport($listId, $dateFrom, $dateTo, $format='CSV', $eventParam = array(), $sentMailingsOnly) {
         $formatCode = 0;
         if ($format == 'PIPE')
         {
@@ -242,13 +242,17 @@ class EngagePod {
                     "EXPORT_FORMAT" => 0,
                     "INCLUDE_CHILDREN" => 1,
                     "SHARED" => 1,
-                    "SENT_MAILINGS" => 1,
                     "ALL_EVENT_TYPES" => 1,
                     "RETURN_SUBJECT" => 1,
                     "RETURN_MAILING_NAME" => 1,
                     "MOVE_TO_FTP" => 1,
                     "EXPORT_FORMAT" => $formatCode,
                 );
+        if ($sentMailingsOnly != 0)
+        {
+            $defaultParam["SENT_MAILINGS"] = 1;
+        }
+
         $eventParam = array_merge($defaultParam, $eventParam);
 
         $data["Envelope"] = array(
