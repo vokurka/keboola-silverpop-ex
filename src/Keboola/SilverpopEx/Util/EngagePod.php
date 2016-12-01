@@ -236,7 +236,6 @@ class EngagePod {
         }
 
         $defaultParam = array(
-                    "LIST_ID" => $listId,
                     "EVENT_DATE_START" => $dateFrom,
                     "EVENT_DATE_END" => $dateTo,
                     "EXPORT_FORMAT" => 0,
@@ -248,6 +247,12 @@ class EngagePod {
                     "MOVE_TO_FTP" => 1,
                     "EXPORT_FORMAT" => $formatCode,
                 );
+
+        if ($listId != null)
+        {
+            $defaultParam["LIST_ID"] = $listId;
+        }
+
         if ($sentMailingsOnly != 0)
         {
             $defaultParam["SENT_MAILINGS"] = 1;

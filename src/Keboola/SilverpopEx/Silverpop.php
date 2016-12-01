@@ -17,7 +17,6 @@ class Silverpop
     'export_aggregated_reports',
     'export_contact_lists',
     'export_events',
-    'lists_to_download',
   );
   private $remoteDir = 'download/';
   private $localDir = '/tmp/';
@@ -56,9 +55,14 @@ class Silverpop
       $this->config[$dateId] = $dateTime->format('m/d/Y H:i:s');
     }
 
-    if (!is_array($this->config['lists_to_download']))
+    $this->config['lists_to_download'] = null;
+    if (!empty($ymlConfig['lists_to_download'])){
+      $this->config['lists_to_download'] = $ymlConfig['lists_to_download'];
+    }
+
+    if ($this->config['lists_to_download'] != null && !is_array($this->config['lists_to_download']))
     {
-      throw new SilverpopException("Country list must be an array.");
+      throw new SilverpopException("If it is present, database IDs list must be an array.");
     }
 
     if (isset($ymlConfig['columns_in_contact_lists']) && !empty($ymlConfig['columns_in_contact_lists']))
@@ -183,6 +187,11 @@ class Silverpop
 
   private function exportContactLists($silverpop)
   {
+    if ($this->config['lists_to_download'] == null)
+    {
+      throw new SilverpopException("If using contacts export, database IDs list is mandatory.");
+    }
+
     $this->logMessage('Downloading contact lists.');
 
     foreach ($this->config['lists_to_download'] as $listName => $list)
@@ -197,13 +206,26 @@ class Silverpop
 
   private function exportEvents($silverpop)
   {
-    $this->logMessage('Downloading events.');
+    
 
-    foreach ($this->config['lists_to_download'] as $listName => $list)
+    if ($this->config['lists_to_download'] != null)
     {
-      $result = $silverpop->rawRecipientDataExport($list, $this->config['date_from'], $this->config['date_to'], $this->config['format'], $this->config['event_param'], $this->config['sent_mailings_only']);
+      $this->logMessage('Downloading events for list of database IDs.');
 
-      $this->downloadJob($result, $silverpop, 'events', array($listName, $list));
+      foreach ($this->config['lists_to_download'] as $listName => $list)
+      {
+        $result = $silverpop->rawRecipientDataExport($list, $this->config['date_from'], $this->config['date_to'], $this->config['format'], $this->config['event_param'], $this->config['sent_mailings_only']);
+
+        $this->downloadJob($result, $silverpop, 'events', array($listName, $list));
+      }
+    }
+    else
+    {
+      $this->logMessage('Downloading events for all database IDs.');
+
+      $result = $silverpop->rawRecipientDataExport(null, $this->config['date_from'], $this->config['date_to'], $this->config['format'], $this->config['event_param'], $this->config['sent_mailings_only']);
+
+      $this->downloadJob($result, $silverpop, 'events', array('all', 'all'));
     }
 
     $this->logMessage('Download completed for events.');
