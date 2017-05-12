@@ -419,7 +419,8 @@ class EngagePod {
             $this->_username = $username;
             $this->_password = $password;
         } else {
-            trigger_error("Login Error: ".$this->_getErrorFromResponse($response), E_USER_ERROR);
+            echo "Login Error: ".$this->_getErrorFromResponse($response);
+            exit(1);
         }
     }
 
