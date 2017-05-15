@@ -419,8 +419,9 @@ class EngagePod {
             $this->_username = $username;
             $this->_password = $password;
         } else {
-            echo "Login Error: ".$this->_getErrorFromResponse($response);
-            exit(1);
+            $errorCode = 1;
+            fwrite(STDERR, "ERROR Code: ".$errorCode.": Login Error: ".$this->_getErrorFromResponse($response));
+            exit($errorCode);
         }
     }
 
