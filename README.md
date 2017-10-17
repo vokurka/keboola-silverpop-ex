@@ -47,6 +47,8 @@ First part describes credentials with correct Engage server to connect to. Also,
 
 *IMPORTANT NOTE2:* Number of engage server - just look at your login URL to the Silverpop (something like login6.silverpop.com) and take the number, put it into the configuration. Easy!
 
+*IMPORTANT NOTE3: In default, the extractor only downloads event data about SENT MAILINGS. If you want to include all other events from all other messages (liek automated_messages), use option "sent_mailings_only": 0 in config.
+
 Second part describes date from and date to for downloading the data. It supports both classic DateTime formats as well as all the syntax you can use in PHP function (http://www.w3schools.com/php/func_date_strtotime.asp).
 
 Third part tells the extractor what to download. 0 = do NOT download, 1 = download. You can turn on/off as the features as you wish. Note that the most time and resource consuming feature is (in paradox) aggregated_reports, because it must download report for each mailing you have in Silverpop. Be carefull.
